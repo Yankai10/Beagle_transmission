@@ -4,8 +4,8 @@ import socket
 import sys
 import time
 
-# 从 receiver2.py 中导入 RadioHoundSensorV3
-from receiver2 import RadioHoundSensorV3
+# 从 receiver.py 中导入 RadioHoundSensorV3
+from receiver import RadioHoundSensorV3
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="持续扫描并通过TCP传输原始ADC数据")
