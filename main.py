@@ -61,13 +61,8 @@ def send_data_tcp(host, port, freq_lims, data):
 def main():
     args = parse_arguments()
 
-    # 实例化硬件对象并初始化
-    try:
-        sensor = RadioHoundSensorV3()
-        print("硬件初始化成功。")
-    except Exception as e:
-        print("硬件初始化失败：", e)
-        sys.exit(1)
+    sensor = RadioHoundSensorV3()
+    print('Initialization successfully')
 
     freq_start = args.freq_start
     freq_end = args.freq_end
@@ -82,41 +77,60 @@ def main():
     start_time = time.time()
     elapsed = 0
 
-    try:
-        # 在给定持续时间内循环扫描
-        while elapsed < duration:
-            # 调用 scan() 获取当前频率范围内的数据
-            scan_results = sensor.scan(
-                frequency_start=freq_start,
-                frequency_end=freq_end,
-                gain=gain,
-                debug=0  # 设置为1可查看更多调试信息
-            )
+    while elapsed < duration:
+        scan_results = sensor.scan(
+            frequency_starts = freq_start,
+            frequency_end = freq_end,
+            gain = gain,
+            rbw = 23437.5,
+            debug = 0
+        )
 
-            # 遍历 scan 返回的多段数据 (f_lims, data)
-            if scan_results is not None:
-                for (f_lims, data) in scan_results:
-                    # 立刻通过TCP发送到Mac
-                    send_data_tcp(host, port, f_lims, data)
-            else:
-                print("扫描失败或无数据返回。")
+        if scan_results is not None:
+            print('Get data :)')
+            for (f_lims, data) in scan_results:
+                send_data_tcp(host, port, f_lims, data)
+        else:
+            print('failed to get data')
 
-            # 更新已用时间
-            elapsed = time.time() - start_time
-            # 这里可以加一个很短的sleep，避免过度占用CPU
-            time.sleep(0.5)
+        elapsed = time.time() - start_time
+        
+    
+    # try:
+    #     # 在给定持续时间内循环扫描
+    #     while elapsed < duration:
+    #         # 调用 scan() 获取当前频率范围内的数据
+    #         scan_results = sensor.scan(
+    #             frequency_start=freq_start,
+    #             frequency_end=freq_end,
+    #             gain=gain,
+    #             debug=0  # 设置为1可查看更多调试信息
+    #         )
 
-        print(f"持续扫描已结束(总时长约{duration}秒)。")
+    #         # 遍历 scan 返回的多段数据 (f_lims, data)
+    #         if scan_results is not None:
+    #             for (f_lims, data) in scan_results:
+    #                 # 立刻通过TCP发送到Mac
+    #                 send_data_tcp(host, port, f_lims, data)
+    #         else:
+    #             print("扫描失败或无数据返回。")
 
-    except KeyboardInterrupt:
-        print("用户中断，停止扫描。")
+    #         # 更新已用时间
+    #         elapsed = time.time() - start_time
+    #         # 这里可以加一个很短的sleep，避免过度占用CPU
+    #         time.sleep(0.5)
 
-    except Exception as e:
-        print("出现异常，停止扫描：", e)
+    #     print(f"持续扫描已结束(总时长约{duration}秒)。")
 
-    finally:
-        sensor.close()
-        print("硬件资源已释放，程序退出。")
+    # except KeyboardInterrupt:
+    #     print("用户中断，停止扫描。")
+
+    # except Exception as e:
+    #     print("出现异常，停止扫描：", e)
+
+    # finally:
+    #     sensor.close()
+    #     print("硬件资源已释放，程序退出。")
 
 if __name__ == '__main__':
     main()
