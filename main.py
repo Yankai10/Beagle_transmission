@@ -146,26 +146,17 @@ def main():
         header_str = f"RAW|FREQ:{args.freq}|"
         header_bytes = header_str.encode("utf-8")
         payload = header_bytes + raw_data
-        sock.sendall(payload)
-        print(f"Sent {len(payload)} bytes for capture.")
+
+        try:
+            sock.sendall(payload)
+            print(f"Sent {len(payload)} bytes.")
+        except Exception as e:
+            print("Error sending data over TCP:", e)
+            break
 
         elapsed = time.time() - start_time
 
-    #         try:
-    #             sock.sendall(payload)
-    #             print(f"Sent {len(payload)} bytes for capture #{capture_count}.")
-    #         except Exception as e:
-    #             print("Error sending data over TCP:", e)
-    #             break
 
-    #         # Update elapsed time and sleep for a defined interval
-    #         elapsed = time.time() - start_time
-    # except KeyboardInterrupt:
-    #     print("User interrupted. Stopping captures.")
-    # finally:
-    #     sensor.close()
-    #     sock.close()
-    #     print("Hardware and socket resources released. Program finished successfully.")
 
 if __name__ == "__main__":
     main()
