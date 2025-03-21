@@ -443,7 +443,7 @@ class RadioHoundSensorV3(Receiver):
 
         output = subprocess.check_output("/sbin/modinfo beaglelogic", shell=True, text=True)
         
-        self.continous = True
+        self.continousflag = True
 
         subprocess.call(["echo 1 > /sys/devices/virtual/misc/beaglelogic/triggerflags"],shell=True)
         print("ADC driver: New. Open ADC device only once.")
