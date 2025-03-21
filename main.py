@@ -136,38 +136,34 @@ def main():
 
     start_time = time.time()
     elapsed = 0
-    capture_count = 0
 
-    try:
-        while elapsed < args.duration:
-            try:
-                # Capture raw data
-                raw_data = sensor.raw(args.freq, args.gain)
-                print(f"Captured {len(raw_data)} bytes of raw data.")
-            except Exception as e:
-                print("Error capturing raw data:", e)
-                break
+    # try:
+    while elapsed < args.duration:
+        raw_data = sensor.raw(args.freq, args.gain)
+        print(f"Captured {len(raw_data)} bytes of raw data.")
 
-            # Prepend a header to identify the capture
-            header_str = f"RAW|FREQ:{args.freq}-GAIN:{args.gain}-CAP#{capture_count}|"
-            header_bytes = header_str.encode("utf-8")
-            payload = header_bytes + raw_data
+        # Prepend a header to identify the capture
+        header_str = f"RAW|FREQ:{args.freq}-GAIN:{args.gain}-CAP#{capture_count}|"
+        header_bytes = header_str.encode("utf-8")
+        payload = header_bytes + raw_data
 
-            try:
-                sock.sendall(payload)
-                print(f"Sent {len(payload)} bytes for capture #{capture_count}.")
-            except Exception as e:
-                print("Error sending data over TCP:", e)
-                break
+        elapsed = time.time() - start_time
 
-            # Update elapsed time and sleep for a defined interval
-            elapsed = time.time() - start_time
-    except KeyboardInterrupt:
-        print("User interrupted. Stopping captures.")
-    finally:
-        sensor.close()
-        sock.close()
-        print("Hardware and socket resources released. Program finished successfully.")
+    #         try:
+    #             sock.sendall(payload)
+    #             print(f"Sent {len(payload)} bytes for capture #{capture_count}.")
+    #         except Exception as e:
+    #             print("Error sending data over TCP:", e)
+    #             break
+
+    #         # Update elapsed time and sleep for a defined interval
+    #         elapsed = time.time() - start_time
+    # except KeyboardInterrupt:
+    #     print("User interrupted. Stopping captures.")
+    # finally:
+    #     sensor.close()
+    #     sock.close()
+    #     print("Hardware and socket resources released. Program finished successfully.")
 
 if __name__ == "__main__":
     main()
