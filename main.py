@@ -108,10 +108,6 @@ def parse_arguments():
         "--duration", type=int, default=600,
         help="Total scanning time in seconds (default: 600 seconds)"
     )
-    parser.add_argument(
-        "--interval", type=float, default=1.0,
-        help="Interval in seconds between consecutive raw captures (default: 1.0)"
-    )
     return parser.parse_args()
 
 def main():
@@ -167,7 +163,6 @@ def main():
 
             # Update elapsed time and sleep for a defined interval
             elapsed = time.time() - start_time
-            time.sleep(args.interval)
     except KeyboardInterrupt:
         print("User interrupted. Stopping captures.")
     finally:
