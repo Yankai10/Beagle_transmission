@@ -47,7 +47,8 @@ class Receiver(object):
         # Set attributes
         for key, value in defaults.items():
             setattr(self, key, value)
-
+        print("sample_rate_min:", self.sample_rate_min)
+        print("sample_rate_max:", self.sample_rate_max)
         self.capabilities = defaults
 
         self.lock = threading.Lock()
