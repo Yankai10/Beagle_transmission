@@ -187,7 +187,7 @@ def main():
         print(f"Captured {len(raw_data)} bytes of raw data.")
 
         # 发送 MQTT 消息
-        header_str = f"RAW|FREQ:1.62e9|CAP#{capture_count}|"
+        header_str = f"RAW|CAP#{capture_count}|"
         header_bytes = header_str.encode("utf-8")
         payload = header_bytes + raw_data
         client.publish(TOPIC, payload, qos=0)
