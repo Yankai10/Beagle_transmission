@@ -148,7 +148,9 @@ def main():
         payload = header_bytes + raw_data
 
         try:
+            print("About to send data of length:", len(payload))
             sock.sendall(payload)
+            print("Finished sending data.")
             print(f"Sent {len(payload)} bytes.")
         except Exception as e:
             print("Error sending data over TCP:", e)
