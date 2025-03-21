@@ -83,6 +83,7 @@ def main():
             frequency_end = freq_end,
             gain = gain,
             rbw = 23437.5,
+            sample_rate=48e6,
             debug = 0
         )
 
