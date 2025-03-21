@@ -143,7 +143,7 @@ def main():
         print(f"Captured {len(raw_data)} bytes of raw data.")
 
         # Prepend a header to identify the capture
-        header_str = f"RAW|FREQ:{args.freq}-GAIN:{args.gain}-CAP#{capture_count}|"
+        header_str = f"RAW|FREQ:{args.freq}|"
         header_bytes = header_str.encode("utf-8")
         payload = header_bytes + raw_data
 
