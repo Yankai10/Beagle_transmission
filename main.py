@@ -143,8 +143,7 @@ def main():
             try:
                 # Capture raw data
                 raw_data = sensor.raw(args.freq, args.gain)
-                capture_count += 1
-                print(f"Capture #{capture_count}: Captured {len(raw_data)} bytes of raw data.")
+                print(f"Captured {len(raw_data)} bytes of raw data.")
             except Exception as e:
                 print("Error capturing raw data:", e)
                 break
