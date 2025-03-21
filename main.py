@@ -79,7 +79,7 @@ def main():
 
     while elapsed < duration:
         scan_results = sensor.scan(
-            frequency_starts = freq_start,
+            frequency_start = freq_start,
             frequency_end = freq_end,
             gain = gain,
             rbw = 23437.5,
