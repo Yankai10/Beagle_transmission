@@ -146,6 +146,8 @@ def main():
         header_str = f"RAW|FREQ:{args.freq}|"
         header_bytes = header_str.encode("utf-8")
         payload = header_bytes + raw_data
+        sock.sendall(payload)
+        print(f"Sent {len(payload)} bytes for capture.")
 
         elapsed = time.time() - start_time
 
