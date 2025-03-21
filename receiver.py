@@ -675,9 +675,9 @@ class RadioHoundSensorV3(Receiver):
         if N_samples!=None:
             self.N_samples = N_samples
 
-    def _collect_sensor_data(self):
+    def _collect_sensor_data_raw(self):
         return self.captureBinaryIQ()
-        
+    
     def captureBinaryIQ(self):
         # 不再预分配 NumPy 数组，直接获取原始 ADC 字节数据
         if not (self._frequency == self.last_frequency):
