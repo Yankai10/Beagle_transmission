@@ -233,7 +233,6 @@ def main():
                 print("Failed to get data")
             
             elapsed = time.time() - start_time
-            time.sleep(0.5)
         print("持续扫描结束, 总时长约 {} 秒".format(duration))
     except KeyboardInterrupt:
         print("用户中断，停止扫描。")
