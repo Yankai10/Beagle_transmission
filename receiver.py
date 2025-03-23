@@ -682,7 +682,7 @@ class RadioHoundSensorV3(Receiver):
         # 不再预分配 NumPy 数组，直接获取原始 ADC 字节数据
         if not (self._frequency == self.last_frequency):
             responseMSP = self.mspCommandBeagle("single", self._gain, int(self._frequency/1e3))
-            print("MSP config response:", response)
+            print("MSP config response:", responseMSP)
             time.sleep(0.05)  # 等待硬件缓冲区稳定
         elif (self._gain != self.last_gain and self._frequency == self.last_frequency):
             responseMSP = self.mspCommandBeagle("setGain", self._gain)
