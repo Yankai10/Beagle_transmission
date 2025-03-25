@@ -177,7 +177,7 @@ def main():
 
     print("Starting repeated raw capture...")
     start_time = time.time()
-    duration = 1  # 采集 10 秒
+    duration = 10  # 采集 10 秒
     elapsed = 0
     capture_count = 0
 
