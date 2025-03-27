@@ -1,5 +1,6 @@
 import paho.mqtt.client as mqtt
 import time
+import argparse
 from datetime import datetime
 from receiver import RadioHoundSensorV3
 
@@ -8,29 +9,36 @@ BROKER_PORT = 1883
 TOPIC = "radiohound/raw"
 
 def main():
+    parser = argparse.ArgumentParser(description="RadioHound MQTT raw capture sender")
+    parser.add_argument("--duration", type=float, default=None, help="采集持续时间（单位：秒），默认无限")
+    args = parser.parse_args()
+
     sensor = RadioHoundSensorV3()
     client = mqtt.Client()
     client.connect(BROKER_HOST, BROKER_PORT, 60)
 
-    print("Starting repeated raw capture...")
+    print("Starting raw capture...")
     start_time = time.time()
-    duration = 10  # 采集 10 秒
-    elapsed = 0
     capture_count = 0
 
-    while elapsed < duration:
-        raw_data = sensor.raw(1.625e9, 1)  # 采集 IQ 数据
-        capture_count += 1
-        print(f"Captured {len(raw_data)} bytes of raw data.")
+    try:
+        while True:
+            if args.duration is not None and (time.time() - start_time) >= args.duration:
+                break
 
-        # 获取精确到微秒的当前时间
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-        header_str = f"RAW|CAP#{capture_count}|TIME:{timestamp}|"
-        header_bytes = header_str.encode("utf-8")
-        payload = header_bytes + raw_data
-        client.publish(TOPIC, payload, qos=0)
+            raw_data = sensor.raw(1.625e9, 1)  # 采集 IQ 数据
+            capture_count += 1
+            print(f"Captured {len(raw_data)} bytes of raw data.")
 
-        elapsed = time.time() - start_time
+            # 获取精确到微秒的当前时间
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+            header_str = f"RAW|CAP#{capture_count}|TIME:{timestamp}|"
+            header_bytes = header_str.encode("utf-8")
+            payload = header_bytes + raw_data
+            client.publish(TOPIC, payload, qos=0)
+
+    except KeyboardInterrupt:
+        print("Interrupted by user.")
 
     print("Finished data transmission.")
     client.disconnect()
@@ -38,3 +46,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
