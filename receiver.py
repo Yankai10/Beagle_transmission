@@ -849,7 +849,6 @@ class RadioHoundSensorV3(Receiver):
         return 0
 
     def readAdcIq(self):
-        # 打开或重新打开 /dev/beaglelogic 设备文件
         if self.continousflag:
             if self.fdev.closed:
                 print("dev is closed, reopening...")
@@ -866,7 +865,7 @@ class RadioHoundSensorV3(Receiver):
             # 如果读取的数据全部为0，则认为读取失败
             if sum(iqBytes) == 0:
                 self.fdev.close()
-                return None  # 表示读取成功但数据无效
+                return None  
             else:
                 if not self.continousflag:
                     self.fdev.close()
