@@ -859,10 +859,9 @@ class RadioHoundSensorV3(Receiver):
             self.fdev = os.fdopen(self.dev)
         
         try:
-            # 直接读取原始 ADC 字节数据
             iqBytes = os.read(self.dev, self._N_samples)
             print("Raw ADC data sample:", iqBytes[:16])
-            # 如果读取的数据全部为0，则认为读取失败
+            
             if sum(iqBytes) == 0:
                 self.fdev.close()
                 return None  
