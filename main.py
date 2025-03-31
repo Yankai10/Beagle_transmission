@@ -30,7 +30,7 @@ def main():
             capture_count += 1
             print(f"Captured {len(raw_data)} bytes of raw data.")
 
-            # 获取精确到微秒的当前时间
+            
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
             header_str = f"RAW|CAP#{capture_count}|TIME:{timestamp}|"
             header_bytes = header_str.encode("utf-8")
