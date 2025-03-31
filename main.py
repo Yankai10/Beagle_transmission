@@ -4,7 +4,7 @@ import argparse
 from datetime import datetime
 from receiver import RadioHoundSensorV3
 
-BROKER_HOST = "127.0.0.1"  # MQTT Broker 运行在 BeagleBone
+BROKER_HOST = "127.0.0.1"  
 BROKER_PORT = 1883
 TOPIC = "radiohound/raw"
 
