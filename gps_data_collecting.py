@@ -8,6 +8,7 @@ import sys
 def run_gps_json_logger(
     output_file="/home/debian/rh_trans_test/Beagle_transmission/gps_data.json",
     duration_sec=None
+):
 
     session = gps.gps(mode=gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
 
