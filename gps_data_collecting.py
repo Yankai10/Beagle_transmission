@@ -105,7 +105,6 @@ def run_gps_json_logger(
             except Exception as e:
                 print(f"[ERROR] Failed to write JSON to file: {e}")
 
-        time.sleep(0.5)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
