@@ -6,7 +6,7 @@ import statistics
 import sys
 
 def run_gps_json_logger(
-    output_file="/opt/icarus/GPS_test/gps_data.json",
+    output_file="/home/debian/rh_trans_test/Beagle_transmission",
     duration_sec=None
 )
 
