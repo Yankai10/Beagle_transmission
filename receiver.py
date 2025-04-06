@@ -196,7 +196,7 @@ class Receiver(object):
     def _raw(self,center_frequency,gain):
         self.frequency = center_frequency
         self.gain = gain
-        self.N_samples = int(BUFFER_SIZE/2)          # Here the N_smamples is the number of complex samples, and the buffer size is the number of real samples/bytes, so we need to divide by 2. This is radiohound specific, not sure how we are going to generalize this.
+        self.N_samples = int(BUFFER_SIZE)          # Here the N_smamples is the number of complex samples, and the buffer size is the number of real samples/bytes, so we need to divide by 2. This is radiohound specific, not sure how we are going to generalize this.
         return self._collect_sensor_data_raw()
 
 
