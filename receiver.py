@@ -848,29 +848,53 @@ class RadioHoundSensorV3(Receiver):
             return 1
         return 0
 
+    # def readAdcIq(self):
+    #     if self.continousflag:
+    #         if self.fdev.closed:
+    #             print("dev is closed, reopening...")
+    #             self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+    #             self.fdev = os.fdopen(self.dev)
+    #     else:
+    #         self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+    #         self.fdev = os.fdopen(self.dev)
+        
+    #     try:
+    #         iqBytes = os.read(self.dev, self._N_samples)
+    #         print("Raw ADC data sample:", iqBytes[:16])
+            
+    #         if sum(iqBytes) == 0:
+    #             self.fdev.close()
+    #             return None  
+    #         else:
+    #             if not self.continousflag:
+    #                 self.fdev.close()
+    #             return iqBytes
+    #     except Exception as e:
+    #         self.fdev.close()
+    #         return None
+
     def readAdcIq(self):
-        if self.continousflag:
-            if self.fdev.closed:
-                print("dev is closed, reopening...")
-                self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
-                self.fdev = os.fdopen(self.dev)
-        else:
+        if self.continousflag and not hasattr(self, "dev"):
+            print("Opening device for continuous mode...")
             self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
-            self.fdev = os.fdopen(self.dev)
+        elif not self.continousflag:
+            self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
         
         try:
-            iqBytes = os.read(self.dev, self._N_samples)
+            iqBytes = os.read(self.dev, 1048576)  # 1MB 一次性读取
             print("Raw ADC data sample:", iqBytes[:16])
             
             if sum(iqBytes) == 0:
-                self.fdev.close()
+                if not self.continousflag:
+                    os.close(self.dev)
                 return None  
             else:
                 if not self.continousflag:
-                    self.fdev.close()
+                    os.close(self.dev)
                 return iqBytes
         except Exception as e:
-            self.fdev.close()
+            if not self.continousflag:
+                os.close(self.dev)
             return None
 
     def close(self):
