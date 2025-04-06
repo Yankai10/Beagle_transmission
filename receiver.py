@@ -897,6 +897,40 @@ class RadioHoundSensorV3(Receiver):
                 os.close(self.dev)
             return None
 
+    def readAdcIq(self):
+        if self.continousflag:
+            if not hasattr(self, "mmap_region"):
+                print("Mapping entire 64MB buffer for continuous mode...")
+                self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+                # 映射整个 64MB 内存区域
+                self.mmap_region = mmap.mmap(self.dev, BUFFER_SIZE, mmap.MAP_SHARED, mmap.PROT_READ)
+        else:
+            # 非连续模式，每次都重新映射整个 64MB
+            self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+            self.mmap_region = mmap.mmap(self.dev, BUFFER_SIZE, mmap.MAP_SHARED, mmap.PROT_READ)
+        
+        try:
+            # 根据需求确定偏移量，简单例子：从偏移0开始读取全部数据
+            self.mmap_region.seek(0)
+            iqBytes = self.mmap_region.read(BUFFER_SIZE)
+            print("Raw ADC data sample (前16字节):", iqBytes[:16])
+            
+            if sum(iqBytes) == 0:
+                if not self.continousflag:
+                    self.mmap_region.close()
+                    os.close(self.dev)
+                return None  
+            else:
+                if not self.continousflag:
+                    self.mmap_region.close()
+                    os.close(self.dev)
+                return iqBytes
+        except Exception as e:
+            if not self.continousflag:
+                self.mmap_region.close()
+                os.close(self.dev)
+            return None
+
     def close(self):
         print("Closing ADC...")
         self.fdev.close()
