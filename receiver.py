@@ -874,10 +874,6 @@ class RadioHoundSensorV3(Receiver):
     #         self.fdev.close()
     #         return None
     def get_current_buffer_index(self):
-    """
-    从 sysfs 读取当前最后写完成的 buffer 索引
-    假设 /sys/class/misc/beaglelogic/state 返回一个整数，表示就绪 buffer 的索引
-    """
         try:
             with open("/sys/class/misc/beaglelogic/state", "r") as f:
                 state_str = f.read().strip()
