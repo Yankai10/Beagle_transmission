@@ -919,7 +919,7 @@ class RadioHoundSensorV3(Receiver):
     
         try:
             # 获取当前就绪的缓冲区索引（0～TOT_BLOCKS-1）
-            current_index = get_current_buffer_index()
+            current_index = self.get_current_buffer_index()
             # 根据环形缓冲区计算偏移（取模保证环绕）
             offset = (current_index % TOT_BLOCKS) * BUF_UNIT_SIZE
     
@@ -942,6 +942,7 @@ class RadioHoundSensorV3(Receiver):
 
     def close(self):
         print("Closing ADC...")
-        self.fdev.close()
+        self.mmap_region.close()
+        os.close(self.dev)
 
 
