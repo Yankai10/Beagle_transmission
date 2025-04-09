@@ -935,9 +935,9 @@ class RadioHoundSensorV3(Receiver):
             else:
                 return block_data
 
-    except Exception as e:
-        print("读取数据时发生异常:", e)
-        return None
+        except Exception as e:
+            print("读取数据时发生异常:", e)
+            return None
 
 
     def close(self):
