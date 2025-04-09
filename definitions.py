@@ -150,8 +150,12 @@ max_sub_job_queued = 2
 strformat = '%-37s'
 
 # Buffer size from the beaglelogic driver, which is then generalized for the number of raw captures
-BUFFER_SIZE = 1024 * 1024
+# BUFFER_SIZE = 1024 * 1024
 # This is used for default sample_rate_max, gain_max, and frequency_max,
 # which should be python float('inf'), but that causes issues with server capabilities display,
 # so we use this instead.
 INFINITY = 1e15
+
+BUFFER_SIZE = 134217728
+BUF_UNIT_SIZE = 2097152
+TOT_BLOCKS = BUFFER_SIZE // BUF_UNIT_SIZE
