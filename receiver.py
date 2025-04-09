@@ -909,9 +909,11 @@ class RadioHoundSensorV3(Receiver):
     # 在连续模式下，如果还没有持久映射，则创建一次映射
         if self.continousflag:
             if not hasattr(self, "mmap_region"):
-                print("Mapping entire 128MB buffer for continuous mode...")
+                print("Mapping entire 64MB buffer for continuous mode...")
                 self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+                print("Before mmap call...")
                 self.mmap_region = mmap.mmap(self.dev, BUFFER_SIZE, mmap.MAP_SHARED, mmap.PROT_READ)
+                print("After mmap call, before reading data...")
         else:
             # 非连续模式，每次调用后都重新映射
             self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
@@ -927,6 +929,7 @@ class RadioHoundSensorV3(Receiver):
             self.mmap_region.seek(offset)
             # 读取一个完整的2MB数据块
             block_data = self.mmap_region.read(BUF_UNIT_SIZE)
+            print("After read call...")
             print("Raw ADC data sample (前16字节):", block_data[:16])
     
             # 简单检查：如果数据全为 0，则认为未写入或无效（可根据需要扩展）
