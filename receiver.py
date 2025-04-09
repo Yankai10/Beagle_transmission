@@ -906,10 +906,6 @@ class RadioHoundSensorV3(Receiver):
     #             os.close(self.dev)
     #         return None
     def readAdcIq(self):
-    """
-    使用持续模式下的持久映射和环形缓冲区按块读取数据
-    读取一个当前就绪的2MB数据块（基于当前 buffer index）
-    """
     # 在连续模式下，如果还没有持久映射，则创建一次映射
         if self.continousflag:
             if not hasattr(self, "mmap_region"):
