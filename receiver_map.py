@@ -8,6 +8,7 @@ import os
 import subprocess
 from scipy import signal
 import json
+import mmap
 
 #BeagleBone平台上硬件接口操作
 try:
