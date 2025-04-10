@@ -873,79 +873,81 @@ class RadioHoundSensorV3(Receiver):
     #     except Exception as e:
     #         self.fdev.close()
     #         return None
-    def get_current_buffer_index(self):
-        try:
-            with open("/sys/class/misc/beaglelogic/state", "r") as f:
-                state_str = f.read().strip()
-            return int(state_str)
-        except Exception as e:
-            print("无法读取状态, 默认使用索引 0:", e)
-            return 0
-    
-    # def readAdcIq(self):
-    #     if self.continousflag and not hasattr(self, "dev"):
-    #         print("Opening device for continuous mode...")
-    #         self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
-    #     elif not self.continousflag:
-    #         self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
-        
+    # def get_current_buffer_index(self):
     #     try:
-    #         iqBytes = os.read(self.dev, 1048576)  # 1MB 一次性读取
-    #         print("Raw ADC data sample:", iqBytes[:16])
-            
-    #         if sum(iqBytes) == 0:
-    #             if not self.continousflag:
-    #                 os.close(self.dev)
-    #             return None  
-    #         else:
-    #             if not self.continousflag:
-    #                 os.close(self.dev)
-    #             return iqBytes
+    #         with open("/sys/class/misc/beaglelogic/state", "r") as f:
+    #             state_str = f.read().strip()
+    #         return int(state_str)
     #     except Exception as e:
-    #         if not self.continousflag:
-    #             os.close(self.dev)
-    #         return None
+    #         print("无法读取状态, 默认使用索引 0:", e)
+    #         return 0
+    
     def readAdcIq(self):
-    # 在连续模式下，如果还没有持久映射，则创建一次映射
-        if self.continousflag:
-            if not hasattr(self, "mmap_region"):
-                print("Mapping entire 64MB buffer for continuous mode...")
-                self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
-                print("Before mmap call...")
-                self.mmap_region = mmap.mmap(self.dev, BUFFER_SIZE, mmap.MAP_SHARED, mmap.PROT_READ)
-                print("After mmap call, before reading data...")
-        else:
-            # 非连续模式，每次调用后都重新映射
+        if self.continousflag and not hasattr(self, "dev"):
+            print("Opening device for continuous mode...")
             self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
-            self.mmap_region = mmap.mmap(self.dev, BUFFER_SIZE, mmap.MAP_SHARED, mmap.PROT_READ)
-    
+        elif not self.continousflag:
+            self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+        
         try:
-            # 获取当前就绪的缓冲区索引（0～TOT_BLOCKS-1）
-            current_index = self.get_current_buffer_index()
-            # 根据环形缓冲区计算偏移（取模保证环绕）
-            offset = (current_index % TOT_BLOCKS) * BUF_UNIT_SIZE
-    
-            # 定位到计算出的偏移
-            self.mmap_region.seek(offset)
-            # 读取一个完整的2MB数据块
-            block_data = self.mmap_region.read(BUF_UNIT_SIZE)
-            print("After read call...")
-            print("Raw ADC data sample (前16字节):", block_data[:16])
-    
-            # 简单检查：如果数据全为 0，则认为未写入或无效（可根据需要扩展）
-            if sum(bytearray(block_data)) == 0:
-                return None
+            iqBytes = os.read(self.dev, 1048576)  # 1MB 一次性读取
+            print("Raw ADC data sample:", iqBytes[:16])
+            
+            if sum(iqBytes) == 0:
+                if not self.continousflag:
+                    os.close(self.dev)
+                return None  
             else:
-                return block_data
-
+                if not self.continousflag:
+                    os.close(self.dev)
+                return iqBytes
         except Exception as e:
-            print("读取数据时发生异常:", e)
+            if not self.continousflag:
+                os.close(self.dev)
             return None
+    # def readAdcIq(self):
+    # # 在连续模式下，如果还没有持久映射，则创建一次映射
+    #     if self.continousflag:
+    #         if not hasattr(self, "mmap_region"):
+    #             print("Mapping entire 64MB buffer for continuous mode...")
+    #             self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+    #             print("Before mmap call...")
+    #             self.mmap_region = mmap.mmap(self.dev, BUFFER_SIZE, mmap.MAP_SHARED, mmap.PROT_READ)
+    #             print("After mmap call, before reading data...")
+    #     else:
+    #         # 非连续模式，每次调用后都重新映射
+    #         self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+    #         self.mmap_region = mmap.mmap(self.dev, BUFFER_SIZE, mmap.MAP_SHARED, mmap.PROT_READ)
+    
+    #     try:
+    #         # 获取当前就绪的缓冲区索引（0～TOT_BLOCKS-1）
+    #         current_index = self.get_current_buffer_index()
+    #         # 根据环形缓冲区计算偏移（取模保证环绕）
+    #         offset = (current_index % TOT_BLOCKS) * BUF_UNIT_SIZE
+    
+    #         # 定位到计算出的偏移
+    #         self.mmap_region.seek(offset)
+    #         # 读取一个完整的2MB数据块
+    #         block_data = self.mmap_region.read(BUF_UNIT_SIZE)
+    #         print("After read call...")
+    #         print("Raw ADC data sample (前16字节):", block_data[:16])
+    
+    #         # 简单检查：如果数据全为 0，则认为未写入或无效（可根据需要扩展）
+    #         if sum(bytearray(block_data)) == 0:
+    #             return None
+    #         else:
+    #             return block_data
+
+    #     except Exception as e:
+    #         print("读取数据时发生异常:", e)
+    #         return None
 
 
+    # def close(self):
+    #     print("Closing ADC...")
+    #     self.mmap_region.close()
+    #     os.close(self.dev)
     def close(self):
         print("Closing ADC...")
-        self.mmap_region.close()
-        os.close(self.dev)
-
+        self.fdev.close()
 
