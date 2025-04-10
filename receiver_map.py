@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from definitions import *
+from definition_map import *
 import threading
 import time
 from tools import *
