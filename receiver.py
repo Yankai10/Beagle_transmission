@@ -1430,7 +1430,7 @@ class RadioHoundSensorV3(Receiver):
             capabilities['sample_rate_max'] = 48e6
             capabilities['sample_rates'] = [48e6]
             capabilities['N_samples_min'] = 1
-            capabilities['N_samples_max'] = 2**22
+            capabilities['N_samples_max'] = 64 * 1024 * 1024
             capabilities['timeout'] = 0.2
         return capabilities
 
