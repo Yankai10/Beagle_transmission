@@ -423,7 +423,7 @@ class RadioHoundSensorV3(Receiver):
         self._gain = 1  #dB
         self._buffer_size = BUFFER_SIZE
         self._N_samples = int(self._buffer_size)
-
+        
         self._gainlst = np.arange(-5,41,3)                                    #  valid VGA gain: range of -5, 40 with steps of 3
         self._targetPower = 0.512**2/2.0/2.0                                  # Assume the target power is 3 dB away from the maximum power of a sin wave without saturation
         self.suggested_gain = 1
