@@ -37,7 +37,7 @@ def main():
 
             client.publish(
                 TOPIC,
-                f"RAW|CAP#{capture_count}|TIME:{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')}|".encode('utf-8') + raw_data,
+                f"RAW|CAP#{capture_count}|TIME:{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')}|".encode('utf-8') + blocks,
                 qos=0
             )
 
