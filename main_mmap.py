@@ -27,20 +27,18 @@ def main():
                 break
 
             # sensor.raw 返回的是块列表，每块约 1MB
-            blocks = sensor.raw(1.625e9, 1)  
+            blocks = sensor.raw(1.625e9, 1)
             if not blocks:
                 continue
 
             for i, block in enumerate(blocks):
                 capture_count += 1
                 print(f"Captured block {i} with {len(block)} bytes of raw data.")
-
-            client.publish(
-                TOPIC,
-                f"RAW|CAP#{capture_count}|TIME:{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')}|".encode('utf-8') + blocks,
-                qos=0
-            )
-
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+                header_str = f"RAW|CAP#{capture_count}|BLOCK#{i}|TIME:{timestamp}|"
+                header_bytes = header_str.encode("utf-8")
+                payload = header_bytes + block
+                client.publish(TOPIC, payload, qos=0)
 
     except KeyboardInterrupt:
         print("Interrupted by user.")
