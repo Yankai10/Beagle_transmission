@@ -10,7 +10,7 @@ TOPIC = "radiohound/raw"
 
 def main():
     parser = argparse.ArgumentParser(description="RadioHound MQTT raw capture sender")
-    parser.add_argument("--duration", type=float, default=None, help="采集持续时间（单位：秒），默认无限")
+    parser.add_argument("--duration", type=float, default=None, help="Scanning time, infinite as default")
     args = parser.parse_args()
 
     sensor = RadioHoundSensorV3()
