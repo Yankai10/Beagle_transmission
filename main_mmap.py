@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 import time
 import argparse
 from datetime import datetime
-from receiver import RadioHoundSensorV3
+from receiver_map import RadioHoundSensorV3
 
 BROKER_HOST = "127.0.0.1"  
 BROKER_PORT = 1883
