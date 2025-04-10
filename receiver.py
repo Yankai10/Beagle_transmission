@@ -2686,7 +2686,7 @@ class RadioHoundSensorV3(Receiver):
         
         try:
             iqBytes = os.read(self.dev, 1048576)  # 1MB 一次性读取
-            print("Raw ADC data sample:", iqBytes[:16])
+            # print("Raw ADC data sample:", iqBytes[:16])
             
             if sum(iqBytes) == 0:
                 if not self.continousflag:
