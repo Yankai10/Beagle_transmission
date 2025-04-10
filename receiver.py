@@ -1345,6 +1345,7 @@ class Receiver(object):
         #print("Suggested gain is " + str(ngain))          
         self.suggested_gain = ngain
 
+
 class RadioHoundSensorV3(Receiver):    
     def __init__(self, capabilities={}):
         # 检查 RH 版本
@@ -1430,7 +1431,7 @@ class RadioHoundSensorV3(Receiver):
             capabilities['sample_rate_max'] = 48e6
             capabilities['sample_rates'] = [48e6]
             capabilities['N_samples_min'] = 1
-            capabilities['N_samples_max'] = 64 * 1024 * 1024
+            capabilities['N_samples_max'] = 2**22
             capabilities['timeout'] = 0.2
         return capabilities
 
@@ -1636,11 +1637,12 @@ class RadioHoundSensorV3(Receiver):
         if responseMSP != 0:
             raise Exception("****Failed to communicate with MSP: Error code {}".format(responseMSP))
         
-        rawData = self.readAdcIq()
-        if rawData is None:
+        # 读取整个 ring buffer 的数据，即所有 1MB 块，并拼接成完整的采样数据
+        blocks = self.readRingBuffer()
+        if not blocks:
             raise Exception("****Failed to get IQ samples: No valid ADC data received")
-        else:
-            return rawData
+        rawData = b"".join(blocks)
+        return rawData
         
 
     def findActualGain(self):
@@ -1784,8 +1786,9 @@ class RadioHoundSensorV3(Receiver):
             return 1
         return 0
 
-    # 修改后的 readAdcIq() 方法：使用 mmap 来读取数据
-    def readAdcIq(self):
+        
+    def readAdcBlock(self, block_index):
+        # 如果映射未建立，则尝试建立
         if self.mm is None:
             try:
                 self.dev = os.open("/dev/beaglelogic", os.O_RDWR)
@@ -1794,16 +1797,30 @@ class RadioHoundSensorV3(Receiver):
                 print("Error remapping /dev/beaglelogic:", e)
                 return None
         try:
-            self.mm.seek(0)  # 重置映射区指针
-            iqBytes = self.mm.read(self._buffer_size)
-            print("Raw ADC data sample:", iqBytes[:16])
-            if sum(iqBytes) == 0:
+            total_blocks = self._buffer_size // BLOCK_SIZE
+            # 保证 block_index 在合理范围内（环形缓冲区）
+            block_index = block_index % total_blocks
+            offset = block_index * BLOCK_SIZE
+            self.mm.seek(offset)
+            block_data = self.mm.read(BLOCK_SIZE)
+            print("Raw ADC block data sample (block {}):".format(block_index), block_data[:16])
+            # 检查数据是否有效（此处仅作简单判断，全0认为无效）
+            if sum(block_data) == 0:
                 return None  
-            return iqBytes
+            return block_data
         except Exception as e:
             print("mmap read error:", e)
             return None
-
+    def readRingBuffer(self):
+        total_blocks = self._buffer_size // BLOCK_SIZE
+        blocks = []
+        for i in range(total_blocks):
+            block = self.readAdcBlock(i)
+            if block is not None:
+                blocks.append(block)
+            else:
+                print("Block {} read failed.".format(i))
+        return blocks
     # 修改后的 close() 方法：关闭 mmap 映射和设备描述符
     def close(self):
         print("Closing ADC...")
@@ -1811,4 +1828,5 @@ class RadioHoundSensorV3(Receiver):
             self.mm.close()
         if hasattr(self, 'dev') and self.dev is not None:
             os.close(self.dev)
+
 
