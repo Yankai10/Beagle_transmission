@@ -35,11 +35,12 @@ def main():
                 capture_count += 1
                 print(f"Captured block {i} with {len(block)} bytes of raw data.")
 
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-                header_str = f"RAW|CAP#{capture_count}|BLOCK#{i}|TIME:{timestamp}|"
-                header_bytes = header_str.encode("utf-8")
-                payload = header_bytes + block
-                client.publish(TOPIC, payload, qos=0)
+            client.publish(
+                TOPIC,
+                f"RAW|CAP#{capture_count}|TIME:{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')}|".encode('utf-8') + raw_data,
+                qos=0
+            )
+
 
     except KeyboardInterrupt:
         print("Interrupted by user.")
