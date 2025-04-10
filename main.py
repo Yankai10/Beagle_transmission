@@ -26,7 +26,7 @@ def main():
             if args.duration is not None and (time.time() - start_time) >= args.duration:
                 break
 
-            raw_data = sensor.raw(1.625e9, 1)  # 采集 IQ 数据
+            raw_data = sensor.raw(1.625e9, 1)  
             capture_count += 1
             print(f"Captured {len(raw_data)} bytes of raw data.")
 
