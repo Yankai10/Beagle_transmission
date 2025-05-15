@@ -855,8 +855,7 @@ class RadioHoundSensorV3(Receiver):
             self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
         
         try:
-            # iqBytes = os.read(self.dev, 1048576)  # 1MB 一次性读取
-            iqBytes = fast_read(self.dev, N)
+            iqBytes = os.read(self.dev, 1048576)  # 1MB 一次性读取
             # print("Raw ADC data sample:", iqBytes[:16])
             
             if sum(iqBytes) == 0:
