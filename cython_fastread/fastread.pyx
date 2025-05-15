@@ -1,6 +1,8 @@
 # cython_fastread/fastread.pyx
 # cython: language_level=3
 
+from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AS_STRING
+
 cdef extern from "unistd.h":
     ssize_t read(int fd, void *buf, size_t count)
 
@@ -9,19 +11,17 @@ cdef extern from "errno.h":
 
 def fast_read(int fd, size_t count):
     """
-    从文件描述符 fd 读取 count 字节，返回一个 bytearray。
+    直接分配未初始化的 bytes 缓冲区，然后 read() 写入，避免 double-memset，
+    应该能接近 os.read 的速度。
     """
-    cdef bytearray buf = bytearray(count)
-    cdef char* data = <char*>buf
-    cdef ssize_t nread
-
-    # 底层read
-    nread = read(fd, data, count)
+    cdef object buf = PyBytes_FromStringAndSize(NULL, count)
+    if buf is NULL:
+        raise MemoryError()
+    cdef void* data = <void*>PyBytes_AS_STRING(buf)
+    cdef ssize_t nread = read(fd, data, count)
     if nread < 0:
         raise OSError(errno, "read failed")
-
-    # 读到的数据比请求的少，就截断
     if nread != count:
         return buf[:nread]
-
     return buf
+
