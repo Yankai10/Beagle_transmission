@@ -8,6 +8,7 @@ import os
 import subprocess
 from scipy import signal
 import json
+from cython_fastread.fastread import fast_read
 
 try:
     import Adafruit_BBIO.GPIO as GPIO
@@ -854,7 +855,8 @@ class RadioHoundSensorV3(Receiver):
             self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
         
         try:
-            iqBytes = os.read(self.dev, 1048576)  # 1MB 一次性读取
+            # iqBytes = os.read(self.dev, 1048576)  # 1MB 一次性读取
+            iqBytes = fast_read(self.dev, N)
             # print("Raw ADC data sample:", iqBytes[:16])
             
             if sum(iqBytes) == 0:
