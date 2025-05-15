@@ -1,32 +1,39 @@
+# cython_fastread/fastread.pyx
 # cython: language_level=3
-from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AS_STRING
-from cpython.ref   cimport Py_DECREF
 
-# 直接从标准头文件声明 POSIX read 和 errno
+from cpython.bytes cimport PyBytes_FromStringAndSize, PyBytes_AS_STRING
+
 cdef extern from "unistd.h":
     ssize_t read(int fd, void *buf, size_t count)
+
 cdef extern from "errno.h":
     int errno
 
 def fast_read(int fd, size_t count):
-    cdef PyObject *buf
+    """
+    从文件描述符 fd 中读取 count 字节，返回一个 Python bytes 对象。
+    """
+    cdef bytes buf
+    cdef char* data
     cdef ssize_t nread
 
-    # 申请一个 bytes 缓冲区
+    # 1) 申请一个指定大小的 bytes 对象（内部预分配好内存）
     buf = PyBytes_FromStringAndSize(NULL, count)
     if buf is NULL:
         raise MemoryError()
 
-    # 调用底层 read()
-    nread = read(fd, PyBytes_AS_STRING(buf), count)
+    # 2) 拿到底层内存指针
+    data = PyBytes_AS_STRING(buf)
+
+    # 3) 调用底层 read
+    nread = read(fd, <void*>data, count)
     if nread < 0:
-        Py_DECREF(buf)
+        # 失败就抛异常（GC 会回收 buf）
         raise OSError(errno, "read failed")
 
-    # 如果读到的数据比请求的少，就截断返回
+    # 4) 如果没读满 count，就切片返回
     if nread != count:
-        return (<bytes>buf)[:nread]
+        return buf[:nread]
 
-    return <bytes>buf
-
-
+    # 5) 否则整块返回
+    return buf
