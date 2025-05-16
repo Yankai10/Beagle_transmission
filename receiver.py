@@ -858,10 +858,10 @@ class RadioHoundSensorV3(Receiver):
     #         iqBytes = os.read(self.dev, 1048576)  # 1MB 一次性读取
     #         # print("Raw ADC data sample:", iqBytes[:16])
             
-    #         if sum(iqBytes) == 0:
-    #             if not self.continousflag:
-    #                 os.close(self.dev)
-    #             return None  
+            # if sum(iqBytes) == 0:
+            #     if not self.continousflag:
+            #         os.close(self.dev)
+            #     return None  
     #         else:
     #             if not self.continousflag:
     #                 os.close(self.dev)
@@ -884,14 +884,7 @@ class RadioHoundSensorV3(Receiver):
             # —— 1MiB 一次读
             buf = os.read(fd, 1048576)
     
-            # —— 用 C 层的 count 代替 Python sum，速度快很多
-            if buf.count(0) == len(buf):
-                # 全零，说明没有数据
-                if not self.continousflag:
-                    os.close(fd)
-                return None
-    
-            # —— 返回数据
+            # —— 去掉 sum(buf) 检查，直接返回
             if not self.continousflag:
                 os.close(fd)
             return buf
