@@ -847,7 +847,32 @@ class RadioHoundSensorV3(Receiver):
         return 0
 
 
+    # def readAdcIq(self):
+    #     if self.continousflag and not hasattr(self, "dev"):
+    #         print("Opening device for continuous mode...")
+    #         self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+    #     elif not self.continousflag:
+    #         self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+        
+    #     try:
+    #         iqBytes = os.read(self.dev, 1048576)  # 1MB 一次性读取
+    #         # print("Raw ADC data sample:", iqBytes[:16])
+            
+    #         if sum(iqBytes) == 0:
+    #             if not self.continousflag:
+    #                 os.close(self.dev)
+    #             return None  
+    #         else:
+    #             if not self.continousflag:
+    #                 os.close(self.dev)
+    #             return iqBytes
+    #     except Exception as e:
+    #         if not self.continousflag:
+    #             os.close(self.dev)
+    #         return None
+
     def readAdcIq(self):
+        # —— 打开设备（不动）
         if self.continousflag and not hasattr(self, "dev"):
             print("Opening device for continuous mode...")
             self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
@@ -855,21 +880,33 @@ class RadioHoundSensorV3(Receiver):
             self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
         
         try:
-            iqBytes = os.read(self.dev, 1048576)  # 1MB 一次性读取
-            # print("Raw ADC data sample:", iqBytes[:16])
+            # —— 计时点1：读数据开始
+            t0 = time.perf_counter()
+            buf = os.read(self.dev, 1048576)  # 1MiB
+            t1 = time.perf_counter()
             
-            if sum(iqBytes) == 0:
+            # —— 计时点2：sum 检查开始
+            s = sum(buf)
+            t2 = time.perf_counter()
+            
+            # —— 打印两段耗时
+            print(f"[PROFILE] os.read: {(t1-t0)*1000:.1f} ms, sum: {(t2-t1)*1000:.1f} ms")
+    
+            # —— 原有逻辑
+            if s == 0:
                 if not self.continousflag:
                     os.close(self.dev)
                 return None  
             else:
                 if not self.continousflag:
                     os.close(self.dev)
-                return iqBytes
+                return buf
+    
         except Exception as e:
             if not self.continousflag:
                 os.close(self.dev)
             return None
+
 
     def close(self):
         print("Closing ADC...")
