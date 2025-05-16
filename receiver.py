@@ -847,30 +847,6 @@ class RadioHoundSensorV3(Receiver):
         return 0
 
 
-    # def readAdcIq(self):
-    #     if self.continousflag and not hasattr(self, "dev"):
-    #         print("Opening device for continuous mode...")
-    #         self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
-    #     elif not self.continousflag:
-    #         self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
-        
-    #     try:
-    #         iqBytes = os.read(self.dev, 1048576)  # 1MB 一次性读取
-    #         # print("Raw ADC data sample:", iqBytes[:16])
-            
-            # if sum(iqBytes) == 0:
-            #     if not self.continousflag:
-            #         os.close(self.dev)
-            #     return None  
-    #         else:
-    #             if not self.continousflag:
-    #                 os.close(self.dev)
-    #             return iqBytes
-    #     except Exception as e:
-    #         if not self.continousflag:
-    #             os.close(self.dev)
-    #         return None
-
     def readAdcIq(self):
         # —— 只在第一次打开设备
         if self.continousflag:
@@ -893,7 +869,44 @@ class RadioHoundSensorV3(Receiver):
             if not self.continousflag:
                 os.close(fd)
             return None
-
+    
+    def readAdcIq(self):
+        # —— 第一次初始化：打开设备 & 分配缓冲区
+        if self.continousflag:
+            if not hasattr(self, "_initialized"):
+                # 打开原始设备文件（只打开一次）
+                self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+                # 用无缓冲方式包装为 file-object，支持 readinto
+                self.fdev = os.fdopen(self.dev, "rb", buffering=0)
+                # 分配 1 MiB 常驻缓冲区（bytearray 可写入）
+                self._buf = bytearray(1048576)
+                self._initialized = True
+    
+            f = self.fdev         # 用同一个 file-object
+            buf = self._buf       # 用同一个缓冲区
+        else:
+            # 单次模式：每次都打开、分配
+            dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+            f   = os.fdopen(dev, "rb", buffering=0)
+            buf = bytearray(1048576)
+    
+        try:
+            # —— 直接往 buf 里读，避免分配新的 bytes
+            n = f.readinto(buf)
+            if n <= 0:
+                # 没读到数据（e.g. EOF 或设备异常）
+                if not self.continousflag:
+                    f.close()
+                return None
+    
+            # —— 如果后续代码需要不可变对象，可做一次切片拷贝
+            data = bytes(buf[:n])
+            return data
+    
+        finally:
+            # —— 单次模式下关闭文件；连续模式等下次结束再 close
+            if not self.continousflag:
+                f.close()
 
     def close(self):
         print("Closing ADC...")
