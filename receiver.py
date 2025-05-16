@@ -870,43 +870,39 @@ class RadioHoundSensorV3(Receiver):
     #             os.close(fd)
     #         return None
     
-    def readAdcIq(self):
-        # —— 第一次初始化：打开设备 & 分配缓冲区
-        if self.continousflag:
-            if not hasattr(self, "_initialized"):
-                # 打开原始设备文件（只打开一次）
-                self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
-                # 用无缓冲方式包装为 file-object，支持 readinto
-                self.fdev = os.fdopen(self.dev, "rb", buffering=0)
-                # 分配 1 MiB 常驻缓冲区（bytearray 可写入）
-                self._buf = bytearray(1048576)
-                self._initialized = True
     
-            f = self.fdev         # 用同一个 file-object
-            buf = self._buf       # 用同一个缓冲区
+    def readAdcIq(self):
+        # —— 第一次打开设备并分配缓冲区
+        if self.continousflag:
+            if not hasattr(self, "_init"):
+                self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+                # 常驻 1MiB 缓冲区和 memoryview
+                self._buf = bytearray(1048576)
+                self._mv  = memoryview(self._buf)
+                self._init = True
+            fd  = self.dev
+            buf = self._buf
         else:
-            # 单次模式：每次都打开、分配
-            dev = os.open("/dev/beaglelogic", os.O_RDONLY)
-            f   = os.fdopen(dev, "rb", buffering=0)
+            fd  = os.open("/dev/beaglelogic", os.O_RDONLY)
             buf = bytearray(1048576)
+            self._mv = memoryview(buf)
     
         try:
-            # —— 直接往 buf 里读，避免分配新的 bytes
-            n = f.readinto(buf)
+            # —— 直接用 os.readv 向固定缓冲区读，零拷贝
+            n = os.readv(fd, [buf])
             if n <= 0:
-                # 没读到数据（e.g. EOF 或设备异常）
                 if not self.continousflag:
-                    f.close()
+                    os.close(fd)
                 return None
     
-            # —— 如果后续代码需要不可变对象，可做一次切片拷贝
-            data = bytes(buf[:n])
-            return data
+            # —— 不做任何 bytes() 转换，直接返回 memoryview
+            data_mv = self._mv[:n]  # 下游处理时可当 bytes-like 用
+            return data_mv
     
         finally:
-            # —— 单次模式下关闭文件；连续模式等下次结束再 close
             if not self.continousflag:
-                f.close()
+                os.close(fd)
+
 
     def close(self):
         print("Closing ADC...")
