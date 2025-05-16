@@ -847,28 +847,28 @@ class RadioHoundSensorV3(Receiver):
         return 0
 
 
-    def readAdcIq(self):
-        # —— 只在第一次打开设备
-        if self.continousflag:
-            if not hasattr(self, "dev"):
-                self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
-            fd = self.dev
-        else:
-            fd = os.open("/dev/beaglelogic", os.O_RDONLY)
+    # def readAdcIq(self):
+    #     # —— 只在第一次打开设备
+    #     if self.continousflag:
+    #         if not hasattr(self, "dev"):
+    #             self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+    #         fd = self.dev
+    #     else:
+    #         fd = os.open("/dev/beaglelogic", os.O_RDONLY)
     
-        try:
-            # —— 1MiB 一次读
-            buf = os.read(fd, 1048576)
+    #     try:
+    #         # —— 1MiB 一次读
+    #         buf = os.read(fd, 1048576)
     
-            # —— 去掉 sum(buf) 检查，直接返回
-            if not self.continousflag:
-                os.close(fd)
-            return buf
+    #         # —— 去掉 sum(buf) 检查，直接返回
+    #         if not self.continousflag:
+    #             os.close(fd)
+    #         return buf
     
-        except Exception:
-            if not self.continousflag:
-                os.close(fd)
-            return None
+    #     except Exception:
+    #         if not self.continousflag:
+    #             os.close(fd)
+    #         return None
     
     def readAdcIq(self):
         # —— 第一次初始化：打开设备 & 分配缓冲区
