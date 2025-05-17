@@ -78,7 +78,7 @@ TOPIC       = "radiohound/raw"
 
 def main():
     parser = argparse.ArgumentParser(
-        description="RadioHound raw capture + MQTT sender"
+        description="RadioHound raw capture + MQTT sender (no sleep)"
     )
     parser.add_argument(
         "--duration",
@@ -88,33 +88,22 @@ def main():
     )
     args = parser.parse_args()
 
-    # 实例化传感器
     sensor = RadioHoundSensorV3()
 
-    # 初始化并连接 MQTT
     client = mqtt.Client()
     client.connect(BROKER_HOST, BROKER_PORT, 60)
 
-    print("Starting raw capture…")
+    print("Starting raw capture (no pacing)…")
     start_time   = time.time()
     total_bytes  = 0
     chunk_count  = 0
 
-    # 控速参数：1 MiB / 48 MiB/s ≈ 0.0218 s
-    chunk_bytes = 1 * 1024 * 1024
-    sample_rate = 48e6
-    interval    = chunk_bytes / sample_rate
-
     try:
         while True:
-            # 持续时长到达则退出
             if args.duration is not None and (time.time() - start_time) >= args.duration:
                 break
 
-            t0 = time.perf_counter()
             data = sensor.raw(1.625e9, 1)
-            t1 = time.perf_counter()
-
             if not data:
                 continue
 
@@ -122,38 +111,31 @@ def main():
             total_bytes += len(data)
             chunk_count += 1
 
-            # —— 类型转换：memoryview → bytes/bytearray
+            # payload 转 bytes
             if isinstance(data, memoryview):
                 payload = data.tobytes()
             elif isinstance(data, bytes):
                 payload = data
             else:
-                # 保险起见：其他可缓冲类型
                 payload = bytearray(data)
 
-            # 发布到 MQTT
+            # 直接发布，不做任何 sleep
             client.publish(TOPIC, payload, qos=0)
-
-            # 简单限速，避免推过快
-            elapsed = t1 - t0
-            to_sleep = interval - elapsed
-            if to_sleep > 0:
-                time.sleep(to_sleep)
 
     except KeyboardInterrupt:
         print("\nInterrupted by user.")
 
-    # 打印最终速率
+    # 最终统计
     elapsed_total = time.time() - start_time
-    mbps = total_bytes / elapsed_total / 1e6
+    mbps = total_bytes / elapsed_total / 1e6 if elapsed_total > 0 else 0
     print(
         f"Finished: {chunk_count} chunks, "
         f"{total_bytes} bytes in {elapsed_total:.2f}s → {mbps:.1f} MB/s"
     )
 
-    # 清理
     sensor.close()
     client.disconnect()
 
 if __name__ == "__main__":
     main()
+
