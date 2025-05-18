@@ -881,12 +881,15 @@ class RadioHoundSensorV3(Receiver):
     
         try:
             # —— 1MiB 一次读
+            buf_start = time.perf_counter()
             buf = os.read(fd, 1048576)
-    
-            # —— 插入 NumPy 求和检查并计时
+            read_done = time.perf_counter()
+            
+            sum_start = time.perf_counter()
+            s = sum(buf)
+            sum_done = time.perf_counter()
+            print(f"[TIMING] os.read: {(read_done - buf_start)*1000:.1f} ms, sum(buf): {(sum_done - sum_start)*1000:.1f} ms")
 
-            arr = np.frombuffer(buf, dtype=np.uint8)
-            s = arr.sum()
 
     
             # —— 原有全零分支逻辑
