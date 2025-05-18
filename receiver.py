@@ -868,39 +868,72 @@ class RadioHoundSensorV3(Receiver):
     #         if not self.continousflag:
     #             os.close(fd)
     #         return None
-    
-    
+
+
     def readAdcIq(self):
-        # —— 第一次打开设备并分配缓冲区
+        # —— 只在第一次打开设备
         if self.continousflag:
-            if not hasattr(self, "_init"):
+            if not hasattr(self, "dev"):
                 self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
-                # 常驻 1MiB 缓冲区和 memoryview
-                self._buf = bytearray(1048576)
-                self._mv  = memoryview(self._buf)
-                self._init = True
-            fd  = self.dev
-            buf = self._buf
+            fd = self.dev
         else:
-            fd  = os.open("/dev/beaglelogic", os.O_RDONLY)
-            buf = bytearray(1048576)
-            self._mv = memoryview(buf)
+            fd = os.open("/dev/beaglelogic", os.O_RDONLY)
     
         try:
-            # —— 直接用 os.readv 向固定缓冲区读，零拷贝
-            n = os.readv(fd, [buf])
-            if n <= 0:
+            # —— 1MiB 一次读
+            buf = os.read(fd, 1048576)
+    
+            # —— 插入 NumPy 求和检查并计时
+            t0 = time.perf_counter()
+            arr = np.frombuffer(buf, dtype=np.uint8)
+            s = arr.sum()
+            t1 = time.perf_counter()
+            print(f"[PROFILE-np] np.sum: {(t1-t0)*1000:.1f} ms, sum={s}")
+    
+            # —— 原有全零分支逻辑
+            if s == 0:
                 if not self.continousflag:
                     os.close(fd)
                 return None
     
-            # —— 不做任何 bytes() 转换，直接返回 memoryview
-            data_mv = self._mv[:n]  # 下游处理时可当 bytes-like 用
-            return data_mv
+            return buf
     
         finally:
             if not self.continousflag:
                 os.close(fd)
+    
+    
+    # def readAdcIq(self):
+    #     # —— 第一次打开设备并分配缓冲区
+    #     if self.continousflag:
+    #         if not hasattr(self, "_init"):
+    #             self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+    #             # 常驻 1MiB 缓冲区和 memoryview
+    #             self._buf = bytearray(1048576)
+    #             self._mv  = memoryview(self._buf)
+    #             self._init = True
+    #         fd  = self.dev
+    #         buf = self._buf
+    #     else:
+    #         fd  = os.open("/dev/beaglelogic", os.O_RDONLY)
+    #         buf = bytearray(1048576)
+    #         self._mv = memoryview(buf)
+    
+    #     try:
+    #         # —— 直接用 os.readv 向固定缓冲区读，零拷贝
+    #         n = os.readv(fd, [buf])
+    #         if n <= 0:
+    #             if not self.continousflag:
+    #                 os.close(fd)
+    #             return None
+    
+    #         # —— 不做任何 bytes() 转换，直接返回 memoryview
+    #         data_mv = self._mv[:n]  # 下游处理时可当 bytes-like 用
+    #         return data_mv
+    
+    #     finally:
+    #         if not self.continousflag:
+    #             os.close(fd)
 
 
 
