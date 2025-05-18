@@ -932,7 +932,7 @@ class RadioHoundSensorV3(Receiver):
     
             # —— np.sum 计算全零检查
             s = arr.sum()
-            print(f"[PROFILE-np] np.sum: {s}")
+            # print(f"[PROFILE-np] np.sum: {s}")
     
             if s == 0:
                 # 全零则视为无效
