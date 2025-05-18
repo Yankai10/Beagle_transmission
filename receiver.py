@@ -884,11 +884,10 @@ class RadioHoundSensorV3(Receiver):
             buf = os.read(fd, 1048576)
     
             # —— 插入 NumPy 求和检查并计时
-            t0 = time.perf_counter()
+
             arr = np.frombuffer(buf, dtype=np.uint8)
             s = arr.sum()
-            t1 = time.perf_counter()
-            print(f"[PROFILE-np] np.sum: {(t1-t0)*1000:.1f} ms, sum={s}")
+
     
             # —— 原有全零分支逻辑
             if s == 0:
