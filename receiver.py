@@ -846,30 +846,6 @@ class RadioHoundSensorV3(Receiver):
         return 0
 
 
-    # def readAdcIq(self):
-    #     # —— 只在第一次打开设备
-    #     if self.continousflag:
-    #         if not hasattr(self, "dev"):
-    #             self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
-    #         fd = self.dev
-    #     else:
-    #         fd = os.open("/dev/beaglelogic", os.O_RDONLY)
-    
-    #     try:
-    #         # —— 1MiB 一次读
-    #         buf = os.read(fd, 1048576)
-    
-    #         # —— 去掉 sum(buf) 检查，直接返回
-    #         if not self.continousflag:
-    #             os.close(fd)
-    #         return buf
-    
-    #     except Exception:
-    #         if not self.continousflag:
-    #             os.close(fd)
-    #         return None
-
-
     def readAdcIq(self):
         # —— 只在第一次打开设备
         if self.continousflag:
@@ -881,28 +857,52 @@ class RadioHoundSensorV3(Receiver):
     
         try:
             # —— 1MiB 一次读
-            buf_start = time.perf_counter()
             buf = os.read(fd, 1048576)
-            read_done = time.perf_counter()
-            
-            sum_start = time.perf_counter()
-            s = sum(buf)
-            sum_done = time.perf_counter()
-            print(f"[TIMING] os.read: {(read_done - buf_start)*1000:.1f} ms, sum(buf): {(sum_done - sum_start)*1000:.1f} ms")
-
-
     
-            # —— 原有全零分支逻辑
-            if s == 0:
-                if not self.continousflag:
-                    os.close(fd)
-                return None
-    
-            return buf
-    
-        finally:
+            # —— 去掉 sum(buf) 检查，直接返回
             if not self.continousflag:
                 os.close(fd)
+            return buf
+    
+        except Exception:
+            if not self.continousflag:
+                os.close(fd)
+            return None
+
+
+    # def readAdcIq(self):
+    #     # —— 只在第一次打开设备
+    #     if self.continousflag:
+    #         if not hasattr(self, "dev"):
+    #             self.dev = os.open("/dev/beaglelogic", os.O_RDONLY)
+    #         fd = self.dev
+    #     else:
+    #         fd = os.open("/dev/beaglelogic", os.O_RDONLY)
+    
+    #     try:
+    #         # —— 1MiB 一次读
+    #         # buf_start = time.perf_counter()
+    #         buf = os.read(fd, 1048576)
+    #         # read_done = time.perf_counter()
+            
+    #         # sum_start = time.perf_counter()
+    #         # s = sum(buf)
+    #         # sum_done = time.perf_counter()
+    #         # print(f"[TIMING] os.read: {(read_done - buf_start)*1000:.1f} ms, sum(buf): {(sum_done - sum_start)*1000:.1f} ms")
+
+
+    
+    #         # —— 原有全零分支逻辑
+    #         if s == 0:
+    #             if not self.continousflag:
+    #                 os.close(fd)
+    #             return None
+    
+    #         return buf
+    
+    #     finally:
+    #         if not self.continousflag:
+    #             os.close(fd)
     
     
     # def readAdcIq(self):
