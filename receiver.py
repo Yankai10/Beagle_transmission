@@ -8,7 +8,6 @@ import os
 import subprocess
 from scipy import signal
 import json
-from cython_fastread.fastread import fast_read
 
 try:
     import Adafruit_BBIO.GPIO as GPIO
